@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Factory Connectivity Advisor · MOBISENSE</title>
+<meta name="description" content="Compare Wi-Fi, cabling, operator 5G and private 5G for your factory and see which option pays back first.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f26a10'/%3E%3Cpath d='M9 22a10 10 0 0 1 14 0M12 18.5a5.5 5.5 0 0 1 8 0' stroke='%23fff' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='24' r='1.8' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>
+/* Layout: phone first, one narrow column, a four step questionnaire with a sticky Back/Next bar, results as a single verdict card plus one bar chart. */
+:root{
+  --bg:#f6f5f3; --surface:#ffffff; --surface-2:#efedea; --line:#dedad5;
+  --fg:#16191c; --muted:#5d636a; --accent:#f26a10; --accent-ink:#b84c06; --accent-soft:#fde9db; --on-accent:#ffffff;
+  --good:#1f7a4d; --bad:#b3261e;
+  --s-wifi:#3b6fb6; --s-cable:#6b7480; --s-op:#8a4fbf; --s-p5g:#f26a10;
+  --display:"Poppins","Segoe UI",system-ui,sans-serif;
+  --body:"Inter Tight","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121315; --surface:#1b1d20; --surface-2:#26292d; --line:#34383d;
+  --fg:#eceae6; --muted:#a2a7ad; --accent:#ff8434; --accent-ink:#ffa76b; --accent-soft:#3a2416; --on-accent:#1a0d03;
+  --good:#5cc98f; --bad:#ff7b72;
+  --s-wifi:#79a6e8; --s-cable:#a3abb5; --s-op:#b98ae6; --s-p5g:#ff8434; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#121315; --surface:#1b1d20; --surface-2:#26292d; --line:#34383d;
+  --fg:#eceae6; --muted:#a2a7ad; --accent:#ff8434; --accent-ink:#ffa76b; --accent-soft:#3a2416; --on-accent:#1a0d03;
+  --good:#5cc98f; --bad:#ff7b72;
+  --s-wifi:#79a6e8; --s-cable:#a3abb5; --s-op:#b98ae6; --s-p5g:#ff8434; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 0}
+.app{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px;min-height:100%}
+.top{display:flex;flex-direction:column;gap:6px}
+.brand{font-family:var(--display);font-weight:700;letter-spacing:.08em;color:var(--accent);font-size:12px}
+h1{font-family:var(--display);font-size:24px;line-height:1.2;margin:0;text-wrap:balance}
+.progress{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.progress button{font:inherit;font-size:12px;color:var(--muted);background:none;border:0;padding:0;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.progress button::before{content:"";display:block;height:4px;border-radius:4px;background:var(--line)}
+.progress button.done::before,.progress button.on::before{background:var(--accent)}
+.progress button.on{color:var(--fg);font-weight:600}
+.step{display:flex;flex-direction:column;gap:14px}
+.step h2{font-family:var(--display);font-size:20px;margin:4px 0 0}
+.step .hint{margin:-8px 0 0;color:var(--muted);font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.q{font-weight:600;font-size:15px}
+.q small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{font:inherit;font-size:15px;flex:1 1 auto;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.field{display:flex;align-items:center;gap:8px}
+.field input{flex:1;min-width:0;font:inherit;font-family:var(--mono);font-size:18px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--fg);font-variant-numeric:tabular-nums}
+.field .unit{color:var(--muted);font-size:14px;min-width:44px}
+.stepper{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.stepper .ctl{display:flex;align-items:center;gap:6px}
+.stepper .ctl button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);font-size:22px;line-height:1;cursor:pointer}
+.stepper .ctl input{width:64px;text-align:center;font:inherit;font-family:var(--mono);font-size:18px;padding:9px 4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);font-variant-numeric:tabular-nums}
+.divider{height:1px;background:var(--line);margin:4px 0}
+.toggle{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:12px;align-items:center;cursor:pointer}
+.toggle input{appearance:none;-webkit-appearance:none;width:52px;height:30px;border-radius:30px;background:var(--line);position:relative;cursor:pointer;margin:0;transition:background .15s}
+.toggle input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.toggle input:checked{background:var(--accent)}
+.toggle input:checked::after{transform:translateX(22px)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.examples{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.examples button{font:inherit;font-size:13px;background:none;border:1px dashed var(--line);color:var(--fg);border-radius:999px;padding:5px 10px;cursor:pointer}
+.nav{position:sticky;bottom:0;margin:0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))) 0;padding:12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));background:linear-gradient(to top, var(--bg) 70%, transparent);display:flex;gap:10px;margin-top:auto}
+.nav .inner{max-width:560px;margin:0 auto;display:flex;gap:10px;width:100%}
+.btn{font:inherit;font-weight:600;font-size:16px;min-height:50px;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:var(--accent);color:var(--on-accent);flex:1;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line);flex:0 0 auto}
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.verdict .head{padding:18px 18px 14px;display:flex;flex-direction:column;gap:6px;border-top:6px solid var(--vcolor, var(--accent))}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.verdict h3{font-family:var(--display);font-size:26px;margin:0;line-height:1.15}
+.verdict p{margin:0;font-size:15px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
+.kpi{padding:12px 14px;min-width:0}
+.kpi+.kpi{border-left:1px solid var(--line)}
+.kpi b{display:block;font-family:var(--mono);font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi span{font-size:12px;color:var(--muted)}
+.why{margin:0;padding:14px 18px 16px 34px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:14px}
+.bars{display:flex;flex-direction:column;gap:12px}
+.bar .lbl{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:5px}
+.bar .lbl b{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar .lbl small{color:var(--muted);font-size:12px;display:block}
+.track{position:relative;height:12px;border-radius:6px;background:var(--surface-2)}
+.track .zero{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--muted)}
+.track .fill{position:absolute;top:0;bottom:0;border-radius:6px}
+.bar.out{opacity:.5}
+.bar.out .lbl span::after{content:" (not suitable)";color:var(--bad);font-size:12px}
+.lead{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.lead h3{font-family:var(--display);margin:0;font-size:19px;line-height:1.25}
+.lead p{margin:0;font-size:14px}
+.lead form{display:flex;flex-direction:column;gap:10px}
+.lead label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.lead input{font:inherit;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.status{font-size:14px;font-weight:600}
+.note{font-size:12px;color:var(--muted);margin:0}
+.contact{font-family:var(--mono);font-size:13px;user-select:all}
+details.more{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+details.more summary{cursor:pointer;font-weight:600;font-size:15px}
+details.more .body{margin-top:12px;display:flex;flex-direction:column;gap:14px}
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:460px}
+th,td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-weight:500;color:var(--muted);font-size:12px}
+.agrid{display:flex;flex-direction:column;gap:8px}
+.arow{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:10px;align-items:center;font-size:13px}
+.arow input{font:inherit;font-family:var(--mono);font-size:15px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--fg);text-align:right;width:100%}
+.agroup{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
+footer{color:var(--muted);font-size:12px;padding-bottom:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="top">
+    <div class="brand">MOBISENSE</div>
+    <h1>Which connection is right for my factory?</h1>
+    <nav class="progress" id="progress" aria-label="Steps">
+      <button type="button" data-go="0">Site</button>
+      <button type="button" data-go="1">Devices</button>
+      <button type="button" data-go="2">Losses</button>
+      <button type="button" data-go="3">Result</button>
+    </nav>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="step" data-step="0">
+    <h2>Your site</h2>
+    <div class="card">
+      <label class="q" for="area">Indoor area<small>Production halls and warehouses</small></label>
+      <div class="field"><input id="area" type="number" inputmode="numeric" min="0" step="100"><span class="unit">m²</span></div>
+      <div class="divider"></div>
+      <label class="q" for="yard">Outdoor area to cover<small>Yard, loading bays, storage. Enter 0 if none.</small></label>
+      <div class="field"><input id="yard" type="number" inputmode="numeric" min="0" step="100"><span class="unit">m²</span></div>
+    </div>
+    <div class="card">
+      <div class="q" id="metal_q">What is inside the building?</div>
+      <div class="seg" data-name="metal" role="group" aria-labelledby="metal_q">
+        <button type="button" data-v="light">Mostly open space</button>
+        <button type="button" data-v="heavy">Heavy machines and metal racks</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="q" id="signal_q">Mobile signal inside the factory<small>STC, Mobily or Zain on a phone</small></div>
+      <div class="seg" data-name="signal" role="group" aria-labelledby="signal_q">
+        <button type="button" data-v="good">Good</button>
+        <button type="button" data-v="weak">Weak in parts</button>
+        <button type="button" data-v="none">Very poor</button>
+      </div>
+    </div>
+    <div class="examples"><span>Or try an example:</span>
+      <button type="button" data-preset="small">Small workshop</button>
+      <button type="button" data-preset="mid">Mid size plant</button>
+      <button type="button" data-preset="large">Large site with yard</button>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" data-step="1" hidden>
+    <h2>What do you want to connect?</h2>
+    <p class="hint">Count what you have today. Rough numbers are fine.</p>
+    <div class="card">
+      <div class="stepper"><label class="q" for="cams">CCTV and IP cameras<small>Video needs the most network capacity</small></label>
+        <div class="ctl"><button type="button" data-dec="cams" aria-label="Fewer cameras">−</button><input id="cams" type="number" inputmode="numeric" min="0"><button type="button" data-inc="cams" aria-label="More cameras">+</button></div></div>
+      <div class="divider"></div>
+      <div class="stepper"><label class="q" for="fixed">Machines, sensors and PCs<small>Devices that stay in one place</small></label>
+        <div class="ctl"><button type="button" data-dec="fixed" aria-label="Fewer fixed devices">−</button><input id="fixed" type="number" inputmode="numeric" min="0"><button type="button" data-inc="fixed" aria-label="More fixed devices">+</button></div></div>
+      <div class="divider"></div>
+      <div class="stepper"><label class="q" for="mobile">Handhelds, scanners and tablets<small>Devices that move around</small></label>
+        <div class="ctl"><button type="button" data-dec="mobile" aria-label="Fewer mobile devices">−</button><input id="mobile" type="number" inputmode="numeric" min="0"><button type="button" data-inc="mobile" aria-label="More mobile devices">+</button></div></div>
+    </div>
+    <div class="card">
+      <div class="q" id="growth_q">Growth in the next 3 years</div>
+      <div class="seg" data-name="growth" role="group" aria-labelledby="growth_q">
+        <button type="button" data-v="0">Same</button>
+        <button type="button" data-v="0.3">A bit more</button>
+        <button type="button" data-v="1">Double</button>
+      </div>
+    </div>
+    <div class="card">
+      <label class="toggle"><span class="q">Robots or automated vehicles are planned<small>They need coverage everywhere they move</small></span><input id="req_auto" type="checkbox"></label>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" data-step="2" hidden>
+    <h2>What do network problems cost you?</h2>
+    <p class="hint">Stopped scanners, lost orders, cameras offline, idle lines.</p>
+    <div class="card">
+      <label class="q" for="hours">Hours of disruption per month</label>
+      <div class="field"><input id="hours" type="number" inputmode="decimal" min="0" step="0.5"><span class="unit">hours</span></div>
+      <div class="divider"></div>
+      <label class="q" for="hourcost">Cost of one hour of disruption<small>Lost output, overtime, penalties</small></label>
+      <div class="field"><input id="hourcost" type="number" inputmode="numeric" min="0" step="500"><span class="unit">SAR</span></div>
+    </div>
+    <div class="card">
+      <label class="toggle"><span class="q">A network failure stops production or creates a safety risk</span><input id="req_critical" type="checkbox"></label>
+      <div class="divider"></div>
+      <label class="toggle"><span class="q">Factory data must stay inside the factory<small>Not through a public operator network</small></span><input id="req_local" type="checkbox"></label>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step" data-step="3" hidden aria-live="polite">
+    <div class="verdict" id="verdict">
+      <div class="head">
+        <div class="eyebrow">Best fit for your factory</div>
+        <h3 id="vName"></h3>
+        <p id="vLine"></p>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><b id="kUp"></b><span>Upfront</span></div>
+        <div class="kpi"><b id="kPay"></b><span>Pays back in</span></div>
+        <div class="kpi"><b id="kNet"></b><span>5 year gain</span></div>
+      </div>
+      <ul class="why" id="vWhy"></ul>
+    </div>
+
+    <div class="lead" id="lead" hidden>
+      <h3>Private 5G fits your factory. Get a free site check.</h3>
+      <p>Leave your details and the MOBISENSE team will contact you.</p>
+      <form id="leadForm" novalidate>
+        <label for="lName">Full name<input id="lName" type="text" autocomplete="name" required></label>
+        <label for="lCompany">Company<input id="lCompany" type="text" autocomplete="organization" required></label>
+        <label for="lPhone">Mobile number<input id="lPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="05x xxx xxxx" required></label>
+        <label for="lCity">City or industrial area<input id="lCity" type="text"></label>
+        <button class="btn" type="submit">Request site check</button>
+      </form>
+      <div class="status" id="lStatus" hidden></div>
+      <a class="btn" id="waLink" href="#" target="_blank" rel="noopener" hidden>Send on WhatsApp</a>
+      <p class="note">Or contact us: <span class="contact">shukri@mobisense.ai</span> · <span class="contact">+966 54 996 3428</span></p>
+    </div>
+
+    <div class="card">
+      <div class="q">5 year gain by option<small>Savings minus all costs. Longer bar is better.</small></div>
+      <div class="bars" id="bars"></div>
+    </div>
+
+    <details class="more" id="more">
+      <summary>Details and cost assumptions</summary>
+      <div class="body">
+        <div class="tablebox"><table>
+          <thead><tr><th>Option</th><th>Upfront</th><th>Running / yr</th><th>Savings / yr</th><th>Payback</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table></div>
+        <p class="note" id="sizing"></p>
+        <div class="agrid" id="agrid"></div>
+        <p class="note">Indicative SAR figures for discussion. A site survey and supplier quotes set final numbers.</p>
+      </div>
+    </details>
+
+    <footer>Estimates for discussion, not a quotation. Private 5G uses licensed spectrum arranged through a licensed operator. MOBISENSE · mobisense.ai</footer>
+  </section>
+
+  <div class="nav"><div class="inner">
+    <button class="btn ghost" type="button" id="back">Back</button>
+    <button class="btn" type="button" id="next">Next</button>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  const WA="966549963428";
+  const OPTS=[
+    {k:"wifi",name:"Better Wi-Fi",color:"--s-wifi"},
+    {k:"cable",name:"Cabling plus Wi-Fi",color:"--s-cable"},
+    {k:"op",name:"Operator 5G routers",color:"--s-op"},
+    {k:"p5g",name:"Private 5G",color:"--s-p5g"}
+  ];
+  const A_DEF=[
+    ["Wi-Fi"],
+    ["apIndoor",3500,"Indoor access point, installed"],
+    ["apCover",400,"Indoor m² per access point"],
+    ["apOutdoor",7000,"Outdoor access point, installed"],
+    ["apCoverOut",1500,"Outdoor m² per access point"],
+    ["apCams",10,"Cameras per access point"],
+    ["apLicense",600,"Licence and support per AP per year"],
+    ["Cabling"],
+    ["drop",1500,"Cable run to one device"],
+    ["Operator 5G"],
+    ["router",1800,"Router, each"],
+    ["perRouter",12,"Devices per router"],
+    ["routerPlan",350,"Data plan per router per month"],
+    ["camPlan",250,"Extra data cost per camera per month"],
+    ["Private 5G"],
+    ["core",120000,"Core and edge server"],
+    ["radioIn",40000,"Indoor radio unit, installed"],
+    ["radioCover",3000,"Indoor m² per radio unit"],
+    ["radioOut",60000,"Outdoor radio unit, installed"],
+    ["radioCoverOut",15000,"Outdoor m² per radio unit"],
+    ["camPerRU",7,"IP cameras per radio unit (uplink limit)"],
+    ["spectrum",20,"Spectrum access, % of network cost"],
+    ["module",700,"5G gateway per device"],
+    ["p5gOpex",12,"Support, % of network cost per year"],
+    ["Downtime removed"],
+    ["rWifi",50,"Better Wi-Fi (%)"],
+    ["rCable",75,"Cabling plus Wi-Fi (%)"],
+    ["rOp",60,"Operator 5G with good signal (%)"],
+    ["rP5g",90,"Private 5G (%)"]
+  ];
+  const PRESETS={
+    small:{area:1500,yard:0,metal:"light",signal:"good",cams:8,fixed:10,mobile:6,growth:"0",hours:2,hourcost:1500,req_auto:false,req_critical:false,req_local:false},
+    mid:{area:8000,yard:3000,metal:"heavy",signal:"weak",cams:30,fixed:40,mobile:30,growth:"0.3",hours:6,hourcost:8000,req_auto:false,req_critical:true,req_local:false},
+    large:{area:25000,yard:20000,metal:"heavy",signal:"weak",cams:80,fixed:150,mobile:100,growth:"1",hours:8,hourcost:20000,req_auto:true,req_critical:true,req_local:true}
+  };
+  const $=id=>document.getElementById(id);
+  const num=v=>{const n=parseFloat(v);return isFinite(n)&&n>0?n:0};
+  const A={};
+  const agrid=$("agrid");
+  A_DEF.forEach(d=>{
+    if(d.length===1){const g=document.createElement("div");g.className="agroup";g.textContent=d[0];agrid.appendChild(g);return;}
+    const [k,v,l]=d;A[k]=v;
+    const row=document.createElement("label");row.className="arow";row.htmlFor="a_"+k;
+    row.innerHTML='<span>'+l+'</span><input id="a_'+k+'" type="number" inputmode="decimal" min="0" value="'+v+'">';
+    agrid.appendChild(row);
+    row.querySelector("input").addEventListener("input",e=>{A[k]=num(e.target.value);render();});
+  });
+
+  // State for segmented controls
+  const S={metal:"heavy",signal:"weak",growth:"0.3"};
+  // Where the answers came from: "default" (untouched starting values), "example:<preset>", or "custom"
+  let source="default";
+  document.querySelectorAll(".seg").forEach(g=>{
+    g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S[g.dataset.name]=b.dataset.v;source="custom";syncSeg();render();});
+  });
+  function syncSeg(){document.querySelectorAll(".seg").forEach(g=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(S[g.dataset.name]===b.dataset.v))));}
+  document.querySelectorAll("[data-inc],[data-dec]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.dataset.inc||b.dataset.dec, el=$(id), v=num(el.value), stepv=v>=50?10:(v>=10?5:1);
+    el.value=Math.max(0,b.dataset.inc?v+stepv:v-stepv);source="custom";render();
+  }));
+  const NUMS=["area","yard","cams","fixed","mobile","hours","hourcost"], TOG=["req_auto","req_critical","req_local"];
+  NUMS.concat(TOG).forEach(f=>$(f).addEventListener("input",()=>{source="custom";render();}));
+  function applyPreset(p,jump){const d=PRESETS[p];NUMS.forEach(f=>$(f).value=d[f]);TOG.forEach(f=>$(f).checked=d[f]);["metal","signal","growth"].forEach(k=>S[k]=d[k]);syncSeg();render();if(jump)go(3);}
+  document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{source="example:"+b.dataset.preset;applyPreset(b.dataset.preset,true);}));
+
+  function read(){const i={};NUMS.forEach(f=>i[f]=num($(f).value));TOG.forEach(f=>i[f]=$(f).checked);i.metal=S.metal;i.signal=S.signal;i.growth=parseFloat(S.growth)||0;return i;}
+  const sar=n=>{const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+"M";else if(a>=1e4)s=Math.round(a/1e3)+"k";else s=Math.round(a).toLocaleString("en-US");return (n<0?"−":"")+"SAR "+s;};
+  const payTxt=m=>m==null?"Over 5 yrs":(m<=1?"1 month":m+" months");
+
+  function model(i){
+    const metal=i.metal==="heavy", g=1+i.growth;
+    const cams=Math.round(i.cams*g), fixed=Math.round(i.fixed*g), mob=Math.round(i.mobile*g);
+    const other=fixed+mob, all=cams+other;
+    const lossYear=i.hours*12*i.hourcost;
+    const res={};
+    // Wi-Fi
+    const apCov=A.apCover*(metal?0.7:1);
+    const apCoverage=i.area>0?Math.ceil(i.area/Math.max(apCov,1)):0;
+    const apIn=Math.max(apCoverage,Math.ceil(other/30),Math.ceil(cams/Math.max(A.apCams,1)));
+    const apOut=i.yard>0?Math.ceil(i.yard/Math.max(A.apCoverOut,1)):0;
+    const wifiUp=apIn*A.apIndoor+apOut*A.apOutdoor, wifiRun=(apIn+apOut)*A.apLicense;
+    let rW=A.rWifi/100-(metal?0.15:0)-(i.yard>5000?0.1:0)-(cams>20?0.1:0);
+    res.wifi={up:wifiUp,run:wifiRun,r:Math.max(rW,0.05),start:1};
+    // Cabling: fixed devices and cameras wired, Wi-Fi for mobile
+    const drops=cams+fixed;
+    res.cable={up:wifiUp+drops*A.drop,run:wifiRun+drops*0.05*A.drop,r:A.rCable/100-(metal?0.05:0),start:2};
+    // Operator routers
+    const routers=Math.max(1,Math.ceil(all/Math.max(A.perRouter,1)));
+    const sigF=i.signal==="good"?1:(i.signal==="weak"?0.55:0.15);
+    res.op={up:routers*A.router,run:routers*A.routerPlan*12+cams*A.camPlan*12,r:A.rOp/100*sigF,start:1};
+    // Private 5G: radios set by coverage or by camera uplink, whichever is larger
+    const rCov=A.radioCover*(metal?0.8:1);
+    const ruCoverage=i.area>0?Math.max(1,Math.ceil(i.area/Math.max(rCov,1))):0;
+    const ruCams=cams>0?Math.ceil(cams/Math.max(A.camPerRU,1)):0;
+    const ruIn=Math.max(ruCoverage,ruCams,1);
+    const ruOut=i.yard>0?Math.ceil(i.yard/Math.max(A.radioCoverOut,1)):0;
+    const net=A.core+ruIn*A.radioIn+ruOut*A.radioOut;
+    res.p5g={up:net*(1+A.spectrum/100)+all*A.module,run:net*A.p5gOpex/100,r:A.rP5g/100,start:3,ruCoverage,ruCams,ruIn,ruOut};
+    // Must haves
+    const fails={wifi:[],cable:[],op:[],p5g:[]};
+    if(i.req_auto){fails.wifi.push("cannot follow moving robots reliably");fails.cable.push("cannot reach moving vehicles");fails.op.push("no control over coverage or delay");}
+    if(i.req_critical){fails.wifi.push("too exposed to interference for critical use");fails.op.push("relies on a shared public network");}
+    if(i.req_local) fails.op.push("data passes through the operator network");
+    if(i.signal==="none") fails.op.push("no usable operator signal inside");
+    if(i.yard>10000) fails.wifi.push("large outdoor area needs too many access points");
+    if(cams>60) fails.wifi.push("too many cameras for wireless access points");
+    OPTS.forEach(o=>{const r=res[o.k];r.save=lossYear*Math.min(r.r,1);let c=-r.up,pay=null;
+      for(let m=1;m<=60;m++){c+=(m>=r.start?r.save/12:0)-r.run/12;if(pay===null&&c>=0)pay=m;}
+      r.pay=pay;r.net5=c;r.fails=fails[o.k];r.ok=!r.fails.length;});
+    return {res,lossYear,cams,all,apIn,apOut};
+  }
+  function pick(m){const ok=OPTS.filter(o=>m.res[o.k].ok),pool=ok.length?ok:OPTS;return pool.reduce((b,o)=>m.res[o.k].net5>m.res[b.k].net5?o:b,pool[0]);}
+
+  const LINES={
+    wifi:"Well placed access points cover your site at the lowest cost.",
+    cable:"Most of your devices stay in place, so cable gives them the most stable link.",
+    op:"Your operator signal is good enough to connect quickly with no installation work.",
+    p5g:"One private network covers your whole site, built for your cameras and moving devices."
+  };
+  function reasons(best,i,m){
+    const r=m.res[best.k],w=[];
+    if(best.k==="p5g"){
+      if(i.req_auto) w.push("Robots and vehicles keep one connection as they move across the site.");
+      if(i.req_critical) w.push("A dedicated network you control, not shared with the public.");
+      if(r.ruCams>r.ruCoverage) w.push("Your "+m.cams+" cameras need about "+r.ruCams+" radio units for upload capacity, more than coverage alone ("+r.ruCoverage+").");
+      else if(i.area+i.yard>10000) w.push("About "+(r.ruIn+r.ruOut)+" radio units cover your "+(i.area+i.yard).toLocaleString("en-US")+" m².");
+    }
+    const runner=OPTS.filter(o=>o.k!==best.k&&m.res[o.k].ok).sort((a,b)=>m.res[b.k].net5-m.res[a.k].net5)[0];
+    if(runner&&m.lossYear>0) w.push(sar(r.net5-m.res[runner.k].net5)+" more over 5 years than "+runner.name.toLowerCase()+".");
+    if(m.lossYear===0) w.push("Add your hours and cost of disruption to see savings.");
+    return w.slice(0,3);
+  }
+
+  let cur=null;
+  function render(){
+    const i=read(),m=model(i),best=pick(m),r=m.res[best.k];cur={i,m,best};
+    $("verdict").style.setProperty("--vcolor","var("+best.color+")");
+    $("vName").textContent=best.name;$("vLine").textContent=LINES[best.k];
+    $("kUp").textContent=sar(r.up);$("kPay").textContent=payTxt(r.pay);$("kNet").textContent=sar(r.net5);
+    const ul=$("vWhy");ul.innerHTML="";reasons(best,i,m).forEach(t=>{const li=document.createElement("li");li.textContent=t;ul.appendChild(li);});ul.hidden=!ul.children.length;
+    // bars
+    const vals=OPTS.map(o=>m.res[o.k].net5),mx=Math.max(0,...vals),mn=Math.min(0,...vals),span=(mx-mn)||1,z=(-mn)/span*100;
+    $("bars").innerHTML=OPTS.map(o=>{const x=m.res[o.k],w=Math.abs(x.net5)/span*100,left=x.net5>=0?z:z-w;
+      return '<div class="bar'+(x.ok?"":" out")+'"><div class="lbl"><span>'+(o.k===best.k?"<strong>"+o.name+"</strong>":o.name)+'<small>'+(x.ok?"Pays back: "+payTxt(x.pay):x.fails[0])+'</small></span><b>'+sar(x.net5)+'</b></div><div class="track"><div class="fill" style="left:'+left+'%;width:'+Math.max(w,0.8)+'%;background:var('+o.color+')"></div><div class="zero" style="left:calc('+z+'% - 1px)"></div></div></div>';}).join("");
+    $("tbody").innerHTML=OPTS.map(o=>{const x=m.res[o.k];return '<tr><td>'+o.name+'</td><td>'+sar(x.up)+'</td><td>'+sar(x.run)+'</td><td>'+sar(x.save)+'</td><td>'+payTxt(x.pay)+'</td></tr>';}).join("");
+    const p=m.res.p5g;
+    $("sizing").textContent="Sizing after growth: "+m.all+" devices including "+m.cams+" cameras. Private 5G needs "+p.ruIn+" indoor radio units ("+p.ruCoverage+" for coverage, "+p.ruCams+" for camera uplink at "+A.camPerRU+" cameras each)"+(p.ruOut?" plus "+p.ruOut+" outdoor":"")+". Wi-Fi needs "+m.apIn+" indoor and "+m.apOut+" outdoor access points.";
+    $("lead").hidden=best.k!=="p5g";
+  }
+
+  // Step navigation
+  let step=0;const steps=[...document.querySelectorAll(".step")];
+  function go(n){step=Math.max(0,Math.min(3,n));steps.forEach((s,k)=>s.hidden=k!==step);
+    document.querySelectorAll("#progress button").forEach((b,k)=>{b.classList.toggle("on",k===step);b.classList.toggle("done",k<step);});
+    $("back").hidden=step===0;$("next").textContent=step===2?"See my result":(step===3?"Start again":"Next");
+    try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){window.scrollTo(0,0);}
+    if(step===3)save(null);
+  }
+  $("next").addEventListener("click",()=>{if(step===3){sid=newId();source="default";applyPreset("mid",false);go(0);}else go(step+1);});
+  $("back").addEventListener("click",()=>go(step-1));
+  document.querySelectorAll("#progress button").forEach(b=>b.addEventListener("click",()=>go(+b.dataset.go)));
+
+  // Response storage: one row per run through the survey, updated in place when the
+  // visitor revisits the result or leaves contact details.
+  const A0=Object.assign({},A);
+  let sid=newId();
+  function newId(){
+    try{return crypto.randomUUID();}catch(e){}
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==="x"?r:(r&3|8)).toString(16);});
+  }
+  function payload(contact){
+    const {i,m,best}=cur,p=m.res.p5g,options={},asm={};
+    OPTS.forEach(o=>{const x=m.res[o.k];options[o.k]={up:Math.round(x.up),run:Math.round(x.run),save:Math.round(x.save),pay:x.pay,net5:Math.round(x.net5),ok:x.ok};});
+    Object.keys(A).forEach(k=>{if(A[k]!==A0[k])asm[k]=A[k];});
+    return {id:sid,source,answers:i,result:{best:best.k,devices:m.all,cams:m.cams,radios:p.ruIn+p.ruOut,options},assumptions:asm,contact};
+  }
+  async function save(contact){
+    try{
+      const r=await fetch("/api/responses",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload(contact)),keepalive:true});
+      return r.ok;
+    }catch(e){return false;}
+  }
+
+  // Lead capture
+  $("leadForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const lead={name:$("lName").value.trim(),company:$("lCompany").value.trim(),phone:$("lPhone").value.trim(),city:$("lCity").value.trim()};
+    const st=$("lStatus");st.hidden=false;
+    if(!lead.name||!lead.company||!lead.phone){st.textContent="Please enter your name, company and mobile number.";st.style.color="var(--bad)";return;}
+    const i=cur.i,p=cur.m.res.p5g;
+    const text="Hello MOBISENSE, I would like a free site connectivity check.\nName: "+lead.name+"\nCompany: "+lead.company+"\nMobile: "+lead.phone+(lead.city?"\nCity: "+lead.city:"")+
+      "\n\nSite: "+i.area+" m² indoor, "+i.yard+" m² outdoor. Cameras: "+i.cams+". Other devices: "+(i.fixed+i.mobile)+".\nAdvisor result: Private 5G, about "+(p.ruIn+p.ruOut)+" radio units, upfront about "+sar(p.up)+".";
+    const wa=$("waLink");wa.href="https://wa.me/"+WA+"?text="+encodeURIComponent(text);wa.hidden=false;
+    st.style.color="var(--muted)";st.textContent="Saving…";
+    const saved=await save(lead);
+    st.style.color="var(--good)";
+    st.textContent=saved?"Saved. We will contact you soon.":"Tap the button below to send your details on WhatsApp.";
+  });
+
+  applyPreset("mid",false);go(0);
+})();
+</script>
+
+</body></html>

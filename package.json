@@ -1,0 +1,10 @@
+{
+  "name": "connectivity-survey",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@vercel/blob": "^2.8.2",
+    "@vercel/functions": "^3.10.1",
+    "pg": "^8.23.1"
+  }
+}
