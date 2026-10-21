@@ -1,4 +1,4 @@
-import { createHash, timingSafeEqual } from "node:crypto";
+import { adminEnabled, authorized } from "../lib/auth.js";
 import { db } from "../lib/db.js";
 
 const OPTIONS = { wifi: "wifi", cable: "cabling", op: "operator_5g", p5g: "private_5g" };
@@ -39,19 +39,10 @@ function cell(v) {
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-function authorized(request) {
-  const header = request.headers.get("authorization") || "";
-  if (!header.startsWith("Basic ")) return false;
-  const decoded = Buffer.from(header.slice(6), "base64").toString();
-  const password = decoded.slice(decoded.indexOf(":") + 1);
-  const hash = (s) => createHash("sha256").update(s).digest();
-  return timingSafeEqual(hash(password), hash(process.env.EXPORT_PASSWORD));
-}
-
 // GET /api/export          every response
 // GET /api/export?leads    only responses with contact details
 export async function GET(request) {
-  if (!process.env.EXPORT_PASSWORD) {
+  if (!adminEnabled()) {
     return new Response("Export is disabled. Set EXPORT_PASSWORD in the Vercel project settings.", { status: 503 });
   }
   if (!authorized(request)) {

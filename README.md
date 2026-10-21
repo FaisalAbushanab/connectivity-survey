@@ -6,7 +6,10 @@ The MOBISENSE connectivity survey, served at https://survey.mobisense.ai on Verc
 public/index.html     the survey (static, no build step)
 public/index_old.html the previous survey with its older cost assumptions, kept for reference
 api/responses.js      POST: saves one row per run through the survey
+public/admin.html     admin results page at /admin (password protected)
 api/export.js         GET: downloads every row as CSV (password protected)
+api/results.js        GET: every row as JSON for the admin page (password protected)
+lib/auth.js           checks the EXPORT_PASSWORD for the admin page and the export
 lib/db.js             Postgres pool; creates the table on first use
 ```
 
@@ -33,6 +36,7 @@ One row in `responses` per visitor run. The row is written when the visitor reac
 
 ## Getting the data out
 
+- **Admin page**: open https://survey.mobisense.ai/admin and enter the `EXPORT_PASSWORD`. It shows totals, the recommendation mix, site check requests and every response, with buttons to download the same CSVs as below. Untouched starts and example runs are hidden unless you tick the box.
 - **CSV**: open https://survey.mobisense.ai/api/export. The browser asks for a username and password: any username, plus the `EXPORT_PASSWORD`. Add `?leads` for only rows with contact details. The file opens in Excel with Arabic text intact. A blank `*_payback_months` means it does not pay back within 5 years.
 - **SQL**: Neon console → SQL Editor, or `psql "$DATABASE_URL"`:
 

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Survey Results · MOBISENSE</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Admin view of the survey responses: a password gate, summary tiles, leads, then every response. Same tokens as the survey page. */
+:root{
+  --bg:#f6f5f3; --surface:#ffffff; --surface-2:#efedea; --line:#dedad5;
+  --fg:#16191c; --muted:#5d636a; --accent:#f26a10; --accent-soft:#fde9db; --on-accent:#ffffff;
+  --bad:#b3261e;
+  --s-wifi:#3b6fb6; --s-cable:#6b7480; --s-op:#8a4fbf; --s-p5g:#f26a10;
+  --display:"Poppins","Segoe UI",system-ui,sans-serif;
+  --body:"Inter Tight","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121315; --surface:#1b1d20; --surface-2:#26292d; --line:#34383d;
+  --fg:#eceae6; --muted:#a2a7ad; --accent:#ff8434; --accent-soft:#3a2416; --on-accent:#1a0d03;
+  --bad:#ff7b72;
+  --s-wifi:#79a6e8; --s-cable:#a3abb5; --s-op:#b98ae6; --s-p5g:#ff8434; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#121315; --surface:#1b1d20; --surface-2:#26292d; --line:#34383d;
+  --fg:#eceae6; --muted:#a2a7ad; --accent:#ff8434; --accent-soft:#3a2416; --on-accent:#1a0d03;
+  --bad:#ff7b72;
+  --s-wifi:#79a6e8; --s-cable:#a3abb5; --s-op:#b98ae6; --s-p5g:#ff8434; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;
+  padding:16px max(16px, env(safe-area-inset-right, 0px)) 32px max(16px, env(safe-area-inset-left, 0px))}
+.app{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top .id{display:flex;flex-direction:column;gap:4px}
+.brand{display:block;align-self:flex-start;height:20px;width:auto;color:var(--fg)}
+h1{font-family:var(--display);font-size:22px;line-height:1.2;margin:0}
+h2{font-family:var(--display);font-size:17px;margin:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.btn{font:inherit;font-weight:600;font-size:14px;min-height:40px;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line)}
+.btn:disabled{opacity:.6;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.login{max-width:380px}
+.login form{display:flex;flex-direction:column;gap:10px}
+.login label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.login input{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--fg)}
+.msg{font-size:14px;margin:0}
+.msg.err{color:var(--bad);font-weight:600}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bar .grow{flex:1}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi b{display:block;font-family:var(--mono);font-size:24px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+.mix{display:flex;flex-direction:column;gap:10px}
+.mix .row{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px}
+.mix .row b{font-family:var(--mono);font-weight:500;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.track i{display:block;height:100%;border-radius:6px}
+.tablebox{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+thead th{font-weight:500;color:var(--muted);font-size:12px;position:sticky;top:0;background:var(--surface)}
+tbody tr:last-child td{border-bottom:0}
+td a{color:inherit}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+.tag{font-size:11px;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+.tag.lead{background:var(--accent-soft);color:var(--fg)}
+.empty{color:var(--muted);font-size:14px;margin:0}
+.note{color:var(--muted);font-size:12px;margin:0}
+@media (max-width:520px){.mix .row{grid-template-columns:110px minmax(0,1fr) auto}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="id">
+      <svg class="brand" viewBox="0 0 1317 203" role="img" aria-label="MOBISENSE" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M145.226 0C139.086 0 134.109 5.01261 134.109 11.195V61.1216C133.359 65.4578 131.779 67.1195 127.777 67.52H22.2356C9.95541 67.52 0 77.5438 0 89.91V191.365C0 197.547 4.97737 202.56 11.1178 202.56H55.9365C62.0769 202.56 67.0543 197.547 67.0543 191.365V146.235C67.0543 140.053 72.0317 135.04 78.1721 135.04H128.482C131.968 135.565 133.405 137.278 134.109 141.351V191.365C134.109 197.547 139.086 202.56 145.226 202.56H190.045C196.186 202.56 201.163 197.547 201.163 191.365V146.235C201.163 140.053 196.186 135.04 190.045 135.04H140.949C136.467 134.702 134.845 132.963 134.109 128.07V74.4021C134.795 69.8377 136.253 68.0174 140.085 67.52H257.099C263.24 67.52 268.217 72.5326 268.217 78.715V191.365C268.217 197.547 273.195 202.56 279.335 202.56H324.154C330.294 202.56 335.272 197.547 335.272 191.365V22.39C335.272 10.0239 325.316 0 313.036 0H145.226Z" fill="var(--accent)"/><path fill-rule="evenodd" clip-rule="evenodd" d="M586.77 163.78C575.606 163.78 565.353 161.16 556.011 155.92C546.67 150.679 539.265 143.445 533.797 134.218C528.329 124.877 525.595 114.339 525.595 102.605C525.595 90.9856 528.329 80.562 533.797 71.3345C539.265 61.9931 546.67 54.7023 556.011 49.462C565.353 44.2217 575.606 41.6016 586.77 41.6016C598.048 41.6016 608.3 44.2217 617.528 49.462C626.869 54.7023 634.217 61.9931 639.571 71.3345C645.039 80.562 647.774 90.9856 647.774 102.605C647.774 114.339 645.039 124.877 639.571 134.218C634.217 143.445 626.869 150.679 617.528 155.92C608.187 161.16 597.934 163.78 586.77 163.78ZM586.77 142.42C593.947 142.42 600.269 140.825 605.737 137.636C611.205 134.332 615.477 129.661 618.553 123.623C621.629 117.586 623.167 110.58 623.167 102.605C623.167 94.631 621.629 87.6819 618.553 81.7581C615.477 75.7204 611.205 71.1067 605.737 67.9169C600.269 64.7272 593.947 63.1323 586.77 63.1323C579.593 63.1323 573.213 64.7272 567.631 67.9169C562.163 71.1067 557.891 75.7204 554.815 81.7581C551.74 87.6819 550.202 94.631 550.202 102.605C550.202 110.58 551.74 117.586 554.815 123.623C557.891 129.661 562.163 134.332 567.631 137.636C573.213 140.825 579.593 142.42 586.77 142.42ZM841.56 159.508C848.281 162.356 855.8 163.78 864.116 163.78C872.888 163.78 880.463 162.185 886.843 158.995C893.222 155.692 898.064 151.306 901.368 145.838C904.671 140.37 906.323 134.446 906.323 128.066C906.323 120.662 904.557 114.681 901.026 110.124C897.494 105.567 893.279 102.15 888.381 99.8713C883.482 97.5929 877.16 95.3145 869.413 93.0361C863.717 91.3274 859.274 89.8464 856.085 88.5933C853.009 87.2263 850.389 85.5175 848.224 83.4669C846.174 81.3025 845.148 78.6253 845.148 75.4356C845.148 70.8788 846.515 67.4043 849.249 65.012C852.097 62.6197 855.857 61.4235 860.527 61.4235C865.882 61.4235 870.154 62.7906 873.343 65.5246C876.138 67.7409 877.832 70.487 878.426 73.7629C878.611 74.7881 879.456 75.6065 880.498 75.6065H902.841C903.983 75.6065 904.888 74.6346 904.751 73.5012C903.575 63.8023 899.371 56.1879 892.14 50.6581C884.507 44.6204 874.54 41.6016 862.236 41.6016C854.034 41.6016 846.743 43.0256 840.364 45.8735C833.984 48.6076 829.029 52.5948 825.497 57.8351C821.966 63.0754 820.2 69.227 820.2 76.29C820.2 83.8087 821.909 89.8464 825.326 94.4032C828.858 98.846 833.016 102.207 837.801 104.485C842.699 106.65 849.022 108.871 856.768 111.149C862.464 112.744 866.907 114.225 870.097 115.592C873.4 116.845 876.134 118.611 878.299 120.889C880.463 123.168 881.546 126.073 881.546 129.604C881.546 133.933 879.951 137.465 876.761 140.199C873.571 142.819 869.185 144.129 863.603 144.129C858.135 144.129 853.806 142.705 850.616 139.857C847.932 137.371 846.289 134.105 845.687 130.057C845.535 129.037 844.69 128.237 843.659 128.237H821.852C820.756 128.237 819.867 129.136 819.938 130.23C820.356 136.686 822.323 142.344 825.839 147.205C829.712 152.559 834.953 156.66 841.56 159.508ZM1184.85 163.78C1176.53 163.78 1169.01 162.356 1162.29 159.508C1155.68 156.66 1150.44 152.559 1146.57 147.205C1143.05 142.344 1141.09 136.686 1140.67 130.23C1140.6 129.136 1141.49 128.237 1142.58 128.237H1164.39C1165.42 128.237 1166.27 129.037 1166.42 130.057C1167.02 134.105 1168.66 137.371 1171.35 139.857C1174.54 142.705 1178.87 144.129 1184.33 144.129C1189.92 144.129 1194.3 142.819 1197.49 140.199C1200.68 137.465 1202.28 133.933 1202.28 129.604C1202.28 126.073 1201.19 123.168 1199.03 120.889C1196.87 118.611 1194.13 116.845 1190.83 115.592C1187.64 114.225 1183.19 112.744 1177.5 111.149C1169.75 108.871 1163.43 106.65 1158.53 104.485C1153.75 102.207 1149.59 98.846 1146.06 94.4032C1142.64 89.8464 1140.93 83.8087 1140.93 76.29C1140.93 69.227 1142.7 63.0754 1146.23 57.8351C1149.76 52.5948 1154.72 48.6076 1161.09 45.8735C1167.47 43.0256 1174.76 41.6016 1182.97 41.6016C1195.27 41.6016 1205.24 44.6204 1212.87 50.6581C1220.1 56.1879 1224.31 63.8023 1225.48 73.5012C1225.62 74.6346 1224.71 75.6065 1223.57 75.6065H1201.23C1200.19 75.6065 1199.34 74.7881 1199.16 73.7629C1198.56 70.487 1196.87 67.7409 1194.07 65.5246C1190.88 62.7906 1186.61 61.4235 1181.26 61.4235C1176.59 61.4235 1172.83 62.6197 1169.98 65.012C1167.25 67.4043 1165.88 70.8788 1165.88 75.4356C1165.88 78.6253 1166.9 81.3025 1168.95 83.4669C1171.12 85.5175 1173.74 87.2263 1176.82 88.5933C1180.01 89.8464 1184.45 91.3274 1190.14 93.0361C1197.89 95.3145 1204.21 97.5929 1209.11 99.8713C1214.01 102.15 1218.23 105.567 1221.76 110.124C1225.29 114.681 1227.05 120.662 1227.05 128.066C1227.05 134.446 1225.4 140.37 1222.1 145.838C1218.79 151.306 1213.95 155.692 1207.57 158.995C1201.19 162.185 1193.62 163.78 1184.85 163.78ZM1273.68 62.6193C1272.6 62.6193 1271.72 63.4982 1271.72 64.5824V90.56C1271.72 91.6442 1272.6 92.5231 1273.68 92.5231H1309.91C1310.99 92.5231 1311.87 93.402 1311.87 94.4862V109.528C1311.87 110.612 1310.99 111.491 1309.91 111.491H1273.68C1272.6 111.491 1271.72 112.37 1271.72 113.454V141.14C1271.72 142.224 1272.6 143.103 1273.68 143.103H1315.04C1316.12 143.103 1317 143.982 1317 145.066V160.62C1317 161.705 1316.12 162.584 1315.04 162.584H1249.76C1248.67 162.584 1247.79 161.705 1247.79 160.62V45.1022C1247.79 44.018 1248.67 43.1391 1249.76 43.1391H1315.04C1316.12 43.1391 1317 44.018 1317 45.1022V60.6562C1317 61.7404 1316.12 62.6193 1315.04 62.6193H1273.68ZM1095.52 161.704C1095.88 162.253 1096.5 162.584 1097.16 162.584H1118.06C1119.14 162.584 1120.02 161.705 1120.02 160.62V45.1022C1120.02 44.018 1119.14 43.1391 1118.06 43.1391H1098.06C1096.98 43.1391 1096.1 44.018 1096.1 45.1022V118.626C1096.1 120.573 1093.57 121.332 1092.5 119.708L1042.51 44.0204C1042.15 43.4701 1041.54 43.1391 1040.88 43.1391H1019.97C1018.89 43.1391 1018.01 44.018 1018.01 45.1022V160.62C1018.01 161.705 1018.89 162.584 1019.97 162.584H1039.97C1041.05 162.584 1041.93 161.705 1041.93 160.62V87.2559C1041.93 85.3102 1044.46 84.5499 1045.53 86.1725L1095.52 161.704ZM952.949 62.6193C951.865 62.6193 950.986 63.4982 950.986 64.5824V90.56C950.986 91.6442 951.865 92.5231 952.949 92.5231H989.18C990.264 92.5231 991.143 93.402 991.143 94.4862V109.528C991.143 110.612 990.264 111.491 989.18 111.491H952.949C951.865 111.491 950.986 112.37 950.986 113.454V141.14C950.986 142.224 951.865 143.103 952.949 143.103H994.306C995.39 143.103 996.269 143.982 996.269 145.066V160.62C996.269 161.705 995.39 162.584 994.306 162.584H929.026C927.942 162.584 927.063 161.705 927.063 160.62V45.1022C927.063 44.018 927.942 43.1391 929.026 43.1391H994.306C995.39 43.1391 996.269 44.018 996.269 45.1022V60.6562C996.269 61.7404 995.39 62.6193 994.306 62.6193H952.949ZM797.333 43.3078C798.418 43.3078 799.297 44.1867 799.297 45.2709V160.618C799.297 161.702 798.418 162.581 797.333 162.581H777.337C776.252 162.581 775.374 161.702 775.374 160.618V45.2709C775.374 44.1867 776.252 43.3078 777.337 43.3078H797.333ZM749.814 111.489C747.202 108.189 744.155 105.657 740.671 103.892C738.848 102.968 738.652 99.2632 740.398 98.2C743.325 96.4177 745.837 94.183 747.935 91.4957C751.694 86.825 753.574 81.0151 753.574 74.066C753.574 68.1422 752.036 62.845 748.96 58.1743C745.998 53.5036 741.555 49.8582 735.631 47.238C729.822 44.6179 722.872 43.3078 714.784 43.3078H667.534C666.45 43.3078 665.571 44.1867 665.571 45.2709V160.618C665.571 161.702 666.45 162.581 667.534 162.581H717.006C725.094 162.581 732.1 161.214 738.024 158.48C743.948 155.746 748.447 151.987 751.523 147.202C754.713 142.304 756.308 136.665 756.308 130.285C756.308 123.222 754.143 116.957 749.814 111.489ZM711.367 92.5209H691.457C690.373 92.5209 689.494 91.642 689.494 90.5578V64.5802C689.494 63.496 690.373 62.6171 691.457 62.6171H711.367C717.063 62.6171 721.448 63.9272 724.524 66.5473C727.6 69.1675 729.138 72.8699 729.138 77.6545C729.138 82.4391 727.6 86.1415 724.524 88.7616C721.448 91.2678 717.063 92.5209 711.367 92.5209ZM727.087 139C723.898 141.734 719.398 143.101 713.588 143.101H691.457C690.373 143.101 689.494 142.222 689.494 141.138V112.939C689.494 111.855 690.373 110.976 691.457 110.976H713.075C718.885 110.976 723.499 112.457 726.917 115.419C730.334 118.267 732.043 122.254 732.043 127.38C732.043 132.393 730.391 136.266 727.087 139ZM505.789 162.581C506.873 162.581 507.752 161.702 507.752 160.618V45.2709C507.752 44.1867 506.873 43.3078 505.789 43.3078H482.048C481.263 43.3078 480.553 43.7764 480.243 44.4989L444.623 127.774C443.943 129.362 441.692 129.362 441.013 127.774L405.392 44.4989C405.083 43.7764 404.373 43.3078 403.587 43.3078H379.676C378.592 43.3078 377.713 44.1867 377.713 45.2709V160.618C377.713 161.702 378.592 162.581 379.676 162.581H399.673C400.757 162.581 401.636 161.702 401.636 160.618V94.8741C401.636 92.7259 404.591 92.1383 405.413 94.123L433.259 161.369C433.563 162.103 434.279 162.581 435.073 162.581H450.56C451.355 162.581 452.072 162.101 452.375 161.366L480.05 94.1752C480.869 92.187 483.829 92.7726 483.829 94.9229V160.618C483.829 161.702 484.708 162.581 485.792 162.581H505.789Z" fill="currentColor"/></svg>
+      <h1>Survey results</h1>
+    </div>
+    <button class="btn ghost" id="logout" type="button" hidden>Log out</button>
+  </div>
+
+  <section class="card login" id="login">
+    <h2>Admin login</h2>
+    <form id="loginForm">
+      <label for="pw">Password<input id="pw" type="password" autocomplete="current-password" required></label>
+      <button class="btn" type="submit" id="loginBtn">View results</button>
+    </form>
+    <p class="msg" id="loginMsg" hidden></p>
+  </section>
+
+  <main id="dash" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="bar">
+      <label class="check"><input id="showAll" type="checkbox">Include examples and untouched starts</label>
+      <span class="grow"></span>
+      <button class="btn ghost" id="refresh" type="button">Refresh</button>
+      <button class="btn ghost" id="csvLeads" type="button">Download leads CSV</button>
+      <button class="btn" id="csvAll" type="button">Download all as CSV</button>
+    </div>
+    <p class="msg err" id="dashMsg" hidden></p>
+
+    <div class="kpis">
+      <div class="kpi"><b id="kRuns">0</b><span>Responses</span></div>
+      <div class="kpi"><b id="kLeads">0</b><span>Site check requests</span></div>
+      <div class="kpi"><b id="kWeek">0</b><span>Responses in the last 7 days</span></div>
+      <div class="kpi"><b id="kP5g">0%</b><span>Recommended private 5G</span></div>
+    </div>
+
+    <section class="card">
+      <h2>Recommendations</h2>
+      <div class="mix" id="mix"></div>
+    </section>
+
+    <section class="card">
+      <h2>Site check requests</h2>
+      <div class="tablebox"><table>
+        <thead><tr><th>Date</th><th>Name</th><th>Company</th><th>Phone</th><th>City</th><th>Recommended</th><th class="n">Indoor m²</th><th class="n">Devices</th></tr></thead>
+        <tbody id="leads"></tbody>
+      </table></div>
+      <p class="empty" id="leadsEmpty" hidden>No site check requests yet.</p>
+    </section>
+
+    <section class="card">
+      <h2>All responses</h2>
+      <div class="tablebox"><table>
+        <thead><tr><th>Date</th><th>Answers</th><th>Recommended</th><th class="n">Indoor m²</th><th class="n">Yard m²</th><th>Building</th><th>Signal</th><th class="n">Cameras</th><th class="n">Fixed</th><th class="n">Mobile</th><th class="n">Hours / mo</th><th class="n">SAR / hour</th><th class="n">5 yr gain (best)</th><th>Contact</th></tr></thead>
+        <tbody id="all"></tbody>
+      </table></div>
+      <p class="empty" id="allEmpty" hidden>No responses yet.</p>
+      <p class="note">"Answers" shows where the inputs came from: own answers, an example, or the untouched starting values. Untouched rows are hidden unless you tick the box above.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+(()=>{
+  const OPTS={wifi:["Better Wi-Fi","--s-wifi"],cable:["Cabling plus Wi-Fi","--s-cable"],op:["Operator 5G routers","--s-op"],p5g:["Private 5G","--s-p5g"]};
+  const KEY="mobisense-admin";
+  const $=id=>document.getElementById(id);
+  let auth=null, rows=[];
+
+  const store={
+    get(){try{return sessionStorage.getItem(KEY)}catch{return null}},
+    set(v){try{v?sessionStorage.setItem(KEY,v):sessionStorage.removeItem(KEY)}catch{}}
+  };
+  const header=pw=>"Basic "+btoa(unescape(encodeURIComponent("admin:"+pw)));
+
+  // DOM helper: text only, so visitor input is never parsed as HTML
+  function el(tag,props,...kids){
+    const e=document.createElement(tag);
+    if(props)Object.entries(props).forEach(([k,v])=>{if(k==="style")e.style.cssText=v;else if(k in e)e[k]=v;else e.setAttribute(k,v);});
+    kids.flat().forEach(k=>{if(k!=null)e.append(k instanceof Node?k:String(k));});
+    return e;
+  }
+  const fmt=n=>n==null||n===""?"–":Number(n).toLocaleString("en-US");
+  const sar=n=>{if(n==null)return"–";const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+"M";else if(a>=1e4)s=Math.round(a/1e3)+"k";else s=Math.round(a).toLocaleString("en-US");return(n<0?"−":"")+"SAR "+s;};
+  const date=s=>new Date(s).toLocaleString("en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  const rec=k=>{const o=OPTS[k];return o?[el("span",{className:"dot",style:"background:var("+o[1]+")"}),o[0]]:k;};
+  const srcLabel=s=>s==="custom"?"Own answers":s==="default"?"Untouched":s.startsWith("example:")?"Example: "+s.slice(8):s;
+  const real=r=>r.source==="custom"||r.lead_at;
+
+  async function load(pw){
+    const res=await fetch("/api/results",{headers:{Authorization:header(pw)},cache:"no-store"});
+    if(res.status===401)throw new Error("Wrong password.");
+    if(res.status===503)throw new Error("Admin access is off. Set EXPORT_PASSWORD in the Vercel project settings and redeploy.");
+    if(!res.ok)throw new Error("Could not load results ("+res.status+").");
+    return (await res.json()).rows;
+  }
+
+  function render(){
+    const list=$("showAll").checked?rows:rows.filter(real);
+    const leads=rows.filter(r=>r.lead_at);
+    const week=Date.now()-7*864e5;
+    $("kRuns").textContent=fmt(list.length);
+    $("kLeads").textContent=fmt(leads.length);
+    $("kWeek").textContent=fmt(list.filter(r=>new Date(r.created_at)>=week).length);
+    const counts={};Object.keys(OPTS).forEach(k=>counts[k]=0);
+    list.forEach(r=>{if(r.recommendation in counts)counts[r.recommendation]++;});
+    $("kP5g").textContent=list.length?Math.round(100*counts.p5g/list.length)+"%":"–";
+
+    const max=Math.max(1,...Object.values(counts));
+    $("mix").replaceChildren(...Object.entries(OPTS).map(([k,[name,c]])=>el("div",{className:"row"},
+      el("span",null,name),
+      el("div",{className:"track"},el("i",{style:"width:"+(100*counts[k]/max)+"%;background:var("+c+")"})),
+      el("b",null,fmt(counts[k])+(list.length?" · "+Math.round(100*counts[k]/list.length)+"%":"")))));
+
+    $("leads").replaceChildren(...leads.map(r=>el("tr",null,
+      el("td",null,date(r.lead_at)),
+      el("td",null,r.name),
+      el("td",null,r.company),
+      el("td",null,el("a",{href:"tel:"+(r.phone||"").replace(/[^\d+]/g,"")},r.phone)),
+      el("td",null,r.city||"–"),
+      el("td",null,rec(r.recommendation)),
+      el("td",{className:"n"},fmt(r.answers.area)),
+      el("td",{className:"n"},fmt(r.result.devices)))));
+    $("leadsEmpty").hidden=leads.length>0;
+
+    $("all").replaceChildren(...list.map(r=>{const a=r.answers,best=r.result.options?.[r.recommendation];
+      return el("tr",null,
+        el("td",null,date(r.created_at)),
+        el("td",null,el("span",{className:"tag"},srcLabel(r.source))),
+        el("td",null,rec(r.recommendation)),
+        el("td",{className:"n"},fmt(a.area)),
+        el("td",{className:"n"},fmt(a.yard)),
+        el("td",null,a.metal==="heavy"?"Heavy metal":a.metal==="light"?"Open":"–"),
+        el("td",null,{good:"Good",weak:"Weak",none:"Very poor"}[a.signal]||"–"),
+        el("td",{className:"n"},fmt(a.cams)),
+        el("td",{className:"n"},fmt(a.fixed)),
+        el("td",{className:"n"},fmt(a.mobile)),
+        el("td",{className:"n"},fmt(a.hours)),
+        el("td",{className:"n"},fmt(a.hourcost)),
+        el("td",{className:"n"},sar(best?.net5)),
+        el("td",null,r.lead_at?el("span",{className:"tag lead"},r.name+" · "+r.company):"–"));}));
+    $("allEmpty").hidden=list.length>0;
+  }
+
+  async function open(pw){
+    rows=await load(pw);
+    auth=pw;store.set(pw);
+    $("login").hidden=true;$("dash").hidden=false;$("logout").hidden=false;
+    render();
+  }
+
+  $("loginForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const m=$("loginMsg"),b=$("loginBtn");
+    b.disabled=true;m.hidden=true;
+    try{await open($("pw").value);$("pw").value="";}
+    catch(err){m.textContent=err.message;m.className="msg err";m.hidden=false;}
+    finally{b.disabled=false;}
+  });
+  $("logout").addEventListener("click",()=>{auth=null;rows=[];store.set(null);$("dash").hidden=true;$("logout").hidden=true;$("login").hidden=false;$("pw").focus();});
+  $("showAll").addEventListener("change",render);
+  $("refresh").addEventListener("click",async()=>{
+    $("dashMsg").hidden=true;
+    try{rows=await load(auth);render();}catch(err){$("dashMsg").textContent=err.message;$("dashMsg").hidden=false;}
+  });
+
+  // CSV comes from /api/export, the same file as opening that URL directly
+  async function csv(leadsOnly,btn){
+    btn.disabled=true;$("dashMsg").hidden=true;
+    try{
+      const res=await fetch("/api/export"+(leadsOnly?"?leads":""),{headers:{Authorization:header(auth)},cache:"no-store"});
+      if(!res.ok)throw new Error("Download failed ("+res.status+").");
+      const name=/filename="([^"]+)"/.exec(res.headers.get("Content-Disposition")||"")?.[1]||"survey.csv";
+      const url=URL.createObjectURL(await res.blob());
+      const a=el("a",{href:url,download:name});document.body.append(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch(err){$("dashMsg").textContent=err.message;$("dashMsg").hidden=false;}
+    finally{btn.disabled=false;}
+  }
+  $("csvAll").addEventListener("click",e=>csv(false,e.currentTarget));
+  $("csvLeads").addEventListener("click",e=>csv(true,e.currentTarget));
+
+  const saved=store.get();
+  if(saved)open(saved).catch(()=>store.set(null));
+})();
+</script>
+</body>
+</html>
