@@ -4,6 +4,7 @@ The MOBISENSE connectivity survey, served at https://survey.mobisense.ai on Verc
 
 ```
 public/index.html     the survey (static, no build step)
+public/index_old.html the previous survey with its older cost assumptions, kept for reference
 api/responses.js      POST: saves one row per run through the survey
 api/export.js         GET: downloads every row as CSV (password protected)
 lib/db.js             Postgres pool; creates the table on first use

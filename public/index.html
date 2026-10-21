@@ -117,6 +117,9 @@ thead th{font-weight:500;color:var(--muted);font-size:12px}
 .arow{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:10px;align-items:center;font-size:13px}
 .arow input{font:inherit;font-family:var(--mono);font-size:15px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--fg);text-align:right;width:100%}
 .agroup{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
+.reset{font:inherit;font-size:13px;align-self:flex-start;background:none;border:1px dashed var(--line);color:var(--fg);border-radius:999px;padding:5px 12px;cursor:pointer}
+.how{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.how b{font-weight:600}
 footer{color:var(--muted);font-size:12px;padding-bottom:8px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -257,7 +260,15 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
         </table></div>
         <p class="note" id="sizing"></p>
         <div class="agrid" id="agrid"></div>
+        <button type="button" class="reset" id="aReset">Reset assumptions</button>
         <p class="note">Indicative SAR figures for discussion. A site survey and supplier quotes set final numbers.</p>
+      </div>
+    </details>
+
+    <details class="more" id="howBox">
+      <summary>How the advisor decides</summary>
+      <div class="body">
+        <ol class="how" id="how"></ol>
       </div>
     </details>
 
@@ -279,36 +290,58 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
     {k:"op",name:"Operator 5G routers",color:"--s-op"},
     {k:"p5g",name:"Private 5G",color:"--s-p5g"}
   ];
+  // Same groups, order and values as the Assumptions sheet of the advisor workbook.
+  // Shares are entered as whole percentages; the sheet stores them as fractions (70 here is 0.7 there).
   const A_DEF=[
     ["Wi-Fi"],
-    ["apIndoor",3500,"Indoor access point, installed"],
-    ["apCover",400,"Indoor m² per access point"],
-    ["apOutdoor",7000,"Outdoor access point, installed"],
-    ["apCoverOut",1500,"Outdoor m² per access point"],
+    ["apIndoor",3500,"Indoor access point, installed (SAR)"],
+    ["apCover",1500,"Indoor m² covered per access point"],
+    ["apMetal",70,"AP coverage kept with heavy metal (%)"],
+    ["apDevices",30,"Devices per access point"],
     ["apCams",10,"Cameras per access point"],
-    ["apLicense",600,"Licence and support per AP per year"],
+    ["apOutdoor",7000,"Outdoor access point, installed (SAR)"],
+    ["apCoverOut",15000,"Outdoor m² covered per access point"],
+    ["apLicense",600,"Licence and support per AP per year (SAR)"],
     ["Cabling"],
-    ["drop",1500,"Cable run to one device"],
-    ["Operator 5G"],
-    ["router",1800,"Router, each"],
+    ["drop",1500,"Cable run to one device (SAR)"],
+    ["recable",5,"Share of cable runs redone each year (%)"],
+    ["Operator 5G routers"],
+    ["router",1800,"Router, each (SAR)"],
     ["perRouter",12,"Devices per router"],
-    ["routerPlan",350,"Data plan per router per month"],
-    ["camPlan",250,"Extra data cost per camera per month"],
+    ["routerPlan",350,"Data plan per router per month (SAR)"],
+    ["camPlan",250,"Extra data cost per camera per month (SAR)"],
+    ["sigGood",100,"Downtime factor, good signal (%)"],
+    ["sigWeak",55,"Downtime factor, weak signal (%)"],
+    ["sigPoor",15,"Downtime factor, very poor signal (%)"],
     ["Private 5G"],
-    ["core",120000,"Core and edge server"],
-    ["radioIn",40000,"Indoor radio unit, installed"],
-    ["radioCover",3000,"Indoor m² per radio unit"],
-    ["radioOut",60000,"Outdoor radio unit, installed"],
-    ["radioCoverOut",15000,"Outdoor m² per radio unit"],
-    ["camPerRU",7,"IP cameras per radio unit (uplink limit)"],
+    ["core",120000,"Core and edge server (SAR)"],
+    ["radioIn",40000,"Indoor radio unit, installed (SAR)"],
+    ["radioCover",9000,"Indoor m² covered per radio unit"],
+    ["radioMetal",80,"Radio coverage kept with heavy metal (%)"],
+    ["camPerRU",37,"IP cameras per radio unit (uplink limit)"],
+    ["radioOut",60000,"Outdoor radio unit, installed (SAR)"],
+    ["radioCoverOut",640000,"Outdoor m² covered per radio unit"],
     ["spectrum",20,"Spectrum access, % of network cost"],
-    ["module",700,"5G gateway per device"],
-    ["p5gOpex",12,"Support, % of network cost per year"],
-    ["Downtime removed"],
+    ["module",700,"5G gateway per device (SAR)"],
+    ["p5gOpex",12,"Support per year, % of network cost"],
+    ["Share of downtime removed"],
     ["rWifi",50,"Better Wi-Fi (%)"],
+    ["penMetal",15,"Wi-Fi penalty, heavy metal (points)"],
+    ["penYard",10,"Wi-Fi penalty, yard over 5,000 m² (points)"],
+    ["penCams",10,"Wi-Fi penalty, over 20 cameras (points)"],
+    ["wifiMin",5,"Wi-Fi minimum (%)"],
     ["rCable",75,"Cabling plus Wi-Fi (%)"],
-    ["rOp",60,"Operator 5G with good signal (%)"],
-    ["rP5g",90,"Private 5G (%)"]
+    ["penCable",5,"Cabling penalty, heavy metal (points)"],
+    ["rOp",60,"Operator 5G, before signal factor (%)"],
+    ["rP5g",90,"Private 5G (%)"],
+    ["Savings start month (installation time)"],
+    ["startWifi",1,"Better Wi-Fi"],
+    ["startCable",2,"Cabling plus Wi-Fi"],
+    ["startOp",1,"Operator 5G routers"],
+    ["startP5g",3,"Private 5G"],
+    ["Must have limits"],
+    ["limYard",10000,"Yard above which Wi-Fi is unsuitable (m²)"],
+    ["limCams",60,"Cameras above which Wi-Fi is unsuitable"]
   ];
   const PRESETS={
     small:{area:1500,yard:0,metal:"light",signal:"good",cams:8,fixed:10,mobile:6,growth:"0",hours:2,hourcost:1500,req_auto:false,req_critical:false,req_local:false},
@@ -327,6 +360,8 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
     agrid.appendChild(row);
     row.querySelector("input").addEventListener("input",e=>{A[k]=num(e.target.value);render();});
   });
+  const A0=Object.assign({},A);
+  $("aReset").addEventListener("click",()=>{Object.assign(A,A0);Object.keys(A).forEach(k=>$("a_"+k).value=A[k]);render();});
 
   // State for segmented controls
   const S={metal:"heavy",signal:"weak",growth:"0.3"};
@@ -348,6 +383,16 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
   function read(){const i={};NUMS.forEach(f=>i[f]=num($(f).value));TOG.forEach(f=>i[f]=$(f).checked);i.metal=S.metal;i.signal=S.signal;i.growth=parseFloat(S.growth)||0;return i;}
   const sar=n=>{const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(a>=1e7?1:2)+"M";else if(a>=1e4)s=Math.round(a/1e3)+"k";else s=Math.round(a).toLocaleString("en-US");return (n<0?"−":"")+"SAR "+s;};
   const payTxt=m=>m==null?"Over 5 yrs":(m<=1?"1 month":m+" months");
+  const pct=k=>A[k]/100;
+  const month=k=>Math.min(60,Math.max(1,Math.round(A[k])||1));
+  // ROUNDUP in the workbook; the tolerance keeps exact divisions such as 10500/1050 at 10
+  const roundup=x=>Math.ceil(x-1e-9);
+  // Workbook payback: first month the running total (minus upfront, plus savings from the start month, minus running cost) is no longer negative
+  function payback(r){
+    if(r.save<=r.run)return null;
+    const m=Math.max(r.start,roundup((12*r.up+r.save*(r.start-1))/(r.save-r.run)));
+    return m>60?null:m;
+  }
 
   function model(i){
     const metal=i.metal==="heavy", g=1+i.growth;
@@ -355,40 +400,40 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
     const other=fixed+mob, all=cams+other;
     const lossYear=i.hours*12*i.hourcost;
     const res={};
-    // Wi-Fi
-    const apCov=A.apCover*(metal?0.7:1);
-    const apCoverage=i.area>0?Math.ceil(i.area/Math.max(apCov,1)):0;
-    const apIn=Math.max(apCoverage,Math.ceil(other/30),Math.ceil(cams/Math.max(A.apCams,1)));
-    const apOut=i.yard>0?Math.ceil(i.yard/Math.max(A.apCoverOut,1)):0;
+    // Wi-Fi: access points set by area, other devices or cameras, whichever needs most
+    const apCov=A.apCover*(metal?pct("apMetal"):1);
+    const apCoverage=i.area>0?roundup(i.area/Math.max(apCov,1)):0;
+    const apIn=Math.max(apCoverage,roundup(other/Math.max(A.apDevices,1)),roundup(cams/Math.max(A.apCams,1)));
+    const apOut=i.yard>0?roundup(i.yard/Math.max(A.apCoverOut,1)):0;
     const wifiUp=apIn*A.apIndoor+apOut*A.apOutdoor, wifiRun=(apIn+apOut)*A.apLicense;
-    let rW=A.rWifi/100-(metal?0.15:0)-(i.yard>5000?0.1:0)-(cams>20?0.1:0);
-    res.wifi={up:wifiUp,run:wifiRun,r:Math.max(rW,0.05),start:1};
+    const rW=pct("rWifi")-(metal?pct("penMetal"):0)-(i.yard>5000?pct("penYard"):0)-(cams>20?pct("penCams"):0);
+    res.wifi={up:wifiUp,run:wifiRun,r:Math.max(rW,pct("wifiMin")),start:month("startWifi")};
     // Cabling: fixed devices and cameras wired, Wi-Fi for mobile
     const drops=cams+fixed;
-    res.cable={up:wifiUp+drops*A.drop,run:wifiRun+drops*0.05*A.drop,r:A.rCable/100-(metal?0.05:0),start:2};
+    res.cable={up:wifiUp+drops*A.drop,run:wifiRun+drops*pct("recable")*A.drop,r:pct("rCable")-(metal?pct("penCable"):0),start:month("startCable")};
     // Operator routers
-    const routers=Math.max(1,Math.ceil(all/Math.max(A.perRouter,1)));
-    const sigF=i.signal==="good"?1:(i.signal==="weak"?0.55:0.15);
-    res.op={up:routers*A.router,run:routers*A.routerPlan*12+cams*A.camPlan*12,r:A.rOp/100*sigF,start:1};
+    const routers=Math.max(1,roundup(all/Math.max(A.perRouter,1)));
+    const sigF=pct(i.signal==="good"?"sigGood":(i.signal==="weak"?"sigWeak":"sigPoor"));
+    res.op={up:routers*A.router,run:routers*A.routerPlan*12+cams*A.camPlan*12,r:pct("rOp")*sigF,start:month("startOp"),routers};
     // Private 5G: radios set by coverage or by camera uplink, whichever is larger
-    const rCov=A.radioCover*(metal?0.8:1);
-    const ruCoverage=i.area>0?Math.max(1,Math.ceil(i.area/Math.max(rCov,1))):0;
-    const ruCams=cams>0?Math.ceil(cams/Math.max(A.camPerRU,1)):0;
+    const rCov=A.radioCover*(metal?pct("radioMetal"):1);
+    const ruCoverage=i.area>0?Math.max(1,roundup(i.area/Math.max(rCov,1))):0;
+    const ruCams=cams>0?roundup(cams/Math.max(A.camPerRU,1)):0;
     const ruIn=Math.max(ruCoverage,ruCams,1);
-    const ruOut=i.yard>0?Math.ceil(i.yard/Math.max(A.radioCoverOut,1)):0;
+    const ruOut=i.yard>0?roundup(i.yard/Math.max(A.radioCoverOut,1)):0;
     const net=A.core+ruIn*A.radioIn+ruOut*A.radioOut;
-    res.p5g={up:net*(1+A.spectrum/100)+all*A.module,run:net*A.p5gOpex/100,r:A.rP5g/100,start:3,ruCoverage,ruCams,ruIn,ruOut};
+    res.p5g={up:net*(1+pct("spectrum"))+all*A.module,run:net*pct("p5gOpex"),r:pct("rP5g"),start:month("startP5g"),ruCoverage,ruCams,ruIn,ruOut};
     // Must haves
     const fails={wifi:[],cable:[],op:[],p5g:[]};
     if(i.req_auto){fails.wifi.push("cannot follow moving robots reliably");fails.cable.push("cannot reach moving vehicles");fails.op.push("no control over coverage or delay");}
     if(i.req_critical){fails.wifi.push("too exposed to interference for critical use");fails.op.push("relies on a shared public network");}
     if(i.req_local) fails.op.push("data passes through the operator network");
     if(i.signal==="none") fails.op.push("no usable operator signal inside");
-    if(i.yard>10000) fails.wifi.push("large outdoor area needs too many access points");
-    if(cams>60) fails.wifi.push("too many cameras for wireless access points");
-    OPTS.forEach(o=>{const r=res[o.k];r.save=lossYear*Math.min(r.r,1);let c=-r.up,pay=null;
-      for(let m=1;m<=60;m++){c+=(m>=r.start?r.save/12:0)-r.run/12;if(pay===null&&c>=0)pay=m;}
-      r.pay=pay;r.net5=c;r.fails=fails[o.k];r.ok=!r.fails.length;});
+    if(i.yard>A.limYard) fails.wifi.push("large outdoor area needs too many access points");
+    if(cams>A.limCams) fails.wifi.push("too many cameras for wireless access points");
+    OPTS.forEach(o=>{const r=res[o.k];r.save=lossYear*Math.min(r.r,1);
+      r.net5=-r.up-5*r.run+r.save/12*(60-r.start+1);r.pay=payback(r);
+      r.fails=fails[o.k];r.ok=!r.fails.length;});
     return {res,lossYear,cams,all,apIn,apOut};
   }
   function pick(m){const ok=OPTS.filter(o=>m.res[o.k].ok),pool=ok.length?ok:OPTS;return pool.reduce((b,o)=>m.res[o.k].net5>m.res[b.k].net5?o:b,pool[0]);}
@@ -413,6 +458,21 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
     return w.slice(0,3);
   }
 
+  // The How It Works sheet of the workbook, filled in with the current assumptions
+  function how(){
+    const n=v=>v.toLocaleString("en-US");
+    return [
+      ["Apply growth","Every device count is multiplied by (1 + growth): Same 0%, A bit more 30%, Double 100%. The network is sized for the factory 3 years from now."],
+      ["Size each network","Wi-Fi: indoor access points are the largest of area to cover ("+n(A.apCover)+" m² each, "+A.apMetal+"% of that with heavy metal), other devices at "+A.apDevices+" per AP and cameras at "+A.apCams+" per AP, plus one outdoor AP per "+n(A.apCoverOut)+" m². Cabling: one cable run per camera and per fixed device. Operator 5G: one router per "+A.perRouter+" devices. Private 5G: indoor radio units are the larger of area to cover ("+n(A.radioCover)+" m² each, "+A.radioMetal+"% of that with heavy metal) and cameras at "+A.camPerRU+" per radio unit, plus one outdoor radio unit per "+n(A.radioCoverOut)+" m²."],
+      ["Price each network","Upfront is equipment and installation. Running cost per year is licences, data plans, support and re-cabling ("+A.recable+"% of runs a year). Private 5G adds spectrum access ("+A.spectrum+"% of network cost), support ("+A.p5gOpex+"% a year) and one 5G gateway per device."],
+      ["Estimate savings","Yearly loss today is hours per month × 12 × cost per hour. Each option removes a share of it: Wi-Fi "+A.rWifi+"%, cabling "+A.rCable+"%, operator 5G "+A.rOp+"%, private 5G "+A.rP5g+"%. Wi-Fi loses "+A.penMetal+" points with heavy metal, "+A.penYard+" with a yard over 5,000 m² and "+A.penCams+" with over 20 cameras (floor "+A.wifiMin+"%). Cabling loses "+A.penCable+" points with heavy metal. Operator 5G is scaled by signal: good "+A.sigGood+"%, weak "+A.sigWeak+"%, very poor "+A.sigPoor+"%."],
+      ["Time the savings","Savings start after installation: month "+month("startWifi")+" for Wi-Fi, "+month("startCable")+" for cabling, "+month("startOp")+" for operator routers, "+month("startP5g")+" for private 5G. Running costs start in month 1."],
+      ["Payback and 5 year gain","The running total starts at minus the upfront cost and adds monthly savings minus monthly running cost for 60 months. Payback is the first month the total is no longer negative. The 5 year gain is the total at month 60."],
+      ["Remove unsuitable options","Robots planned rules out Wi-Fi, cabling and operator 5G. A critical network rules out Wi-Fi and operator 5G. Data that must stay inside rules out operator 5G, and so does a very poor signal. A yard over "+n(A.limYard)+" m² or more than "+A.limCams+" cameras after growth rules out Wi-Fi."],
+      ["Recommend","Among the suitable options the highest 5 year gain wins. If none is suitable, the highest 5 year gain overall wins."]
+    ];
+  }
+
   let cur=null;
   function render(){
     const i=read(),m=model(i),best=pick(m),r=m.res[best.k];cur={i,m,best};
@@ -423,10 +483,11 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
     // bars
     const vals=OPTS.map(o=>m.res[o.k].net5),mx=Math.max(0,...vals),mn=Math.min(0,...vals),span=(mx-mn)||1,z=(-mn)/span*100;
     $("bars").innerHTML=OPTS.map(o=>{const x=m.res[o.k],w=Math.abs(x.net5)/span*100,left=x.net5>=0?z:z-w;
-      return '<div class="bar'+(x.ok?"":" out")+'"><div class="lbl"><span>'+(o.k===best.k?"<strong>"+o.name+"</strong>":o.name)+'<small>'+(x.ok?"Pays back: "+payTxt(x.pay):x.fails[0])+'</small></span><b>'+sar(x.net5)+'</b></div><div class="track"><div class="fill" style="left:'+left+'%;width:'+Math.max(w,0.8)+'%;background:var('+o.color+')"></div><div class="zero" style="left:calc('+z+'% - 1px)"></div></div></div>';}).join("");
-    $("tbody").innerHTML=OPTS.map(o=>{const x=m.res[o.k];return '<tr><td>'+o.name+'</td><td>'+sar(x.up)+'</td><td>'+sar(x.run)+'</td><td>'+sar(x.save)+'</td><td>'+payTxt(x.pay)+'</td></tr>';}).join("");
+      return '<div class="bar'+(x.ok?"":" out")+'" data-k="'+o.k+'"><div class="lbl"><span>'+(o.k===best.k?"<strong>"+o.name+"</strong>":o.name)+'<small>'+(x.ok?"Pays back: "+payTxt(x.pay):x.fails[0])+'</small></span><b>'+sar(x.net5)+'</b></div><div class="track"><div class="fill" style="left:'+left+'%;width:'+Math.max(w,0.8)+'%;background:var('+o.color+')"></div><div class="zero" style="left:calc('+z+'% - 1px)"></div></div></div>';}).join("");
+    $("tbody").innerHTML=OPTS.map(o=>{const x=m.res[o.k];return '<tr data-k="'+o.k+'"><td>'+o.name+'</td><td>'+sar(x.up)+'</td><td>'+sar(x.run)+'</td><td>'+sar(x.save)+'</td><td>'+payTxt(x.pay)+'</td></tr>';}).join("");
     const p=m.res.p5g;
-    $("sizing").textContent="Sizing after growth: "+m.all+" devices including "+m.cams+" cameras. Private 5G needs "+p.ruIn+" indoor radio units ("+p.ruCoverage+" for coverage, "+p.ruCams+" for camera uplink at "+A.camPerRU+" cameras each)"+(p.ruOut?" plus "+p.ruOut+" outdoor":"")+". Wi-Fi needs "+m.apIn+" indoor and "+m.apOut+" outdoor access points.";
+    $("sizing").textContent="Sizing after growth: "+m.all+" devices including "+m.cams+" cameras. Private 5G needs "+p.ruIn+" indoor radio units ("+p.ruCoverage+" for coverage, "+p.ruCams+" for camera uplink at "+A.camPerRU+" cameras each)"+(p.ruOut?" plus "+p.ruOut+" outdoor":"")+". Wi-Fi needs "+m.apIn+" indoor and "+m.apOut+" outdoor access points. Operator 5G needs "+m.res.op.routers+" routers.";
+    const ol=$("how");ol.innerHTML="";how().forEach(([h,t])=>{const li=document.createElement("li"),b=document.createElement("b");b.textContent=h+". ";li.append(b,t);ol.appendChild(li);});
     $("lead").hidden=best.k!=="p5g";
   }
 
@@ -444,7 +505,6 @@ footer{color:var(--muted);font-size:12px;padding-bottom:8px}
 
   // Response storage: one row per run through the survey, updated in place when the
   // visitor revisits the result or leaves contact details.
-  const A0=Object.assign({},A);
   let sid=newId();
   function newId(){
     try{return crypto.randomUUID();}catch(e){}
